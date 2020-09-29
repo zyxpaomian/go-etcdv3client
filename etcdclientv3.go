@@ -92,7 +92,7 @@ func (e *EtcdClient) Get(key string) (string, error) {
 }
 
 func (e *EtcdClient) GetPrefix(key string) (map[string]string, error) {
-	var resultMap map[string]string
+	resultMap := make(map[string]string)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.ReqTimeout)*time.Second)
 	resp, err := e.Client.Get(ctx, key, clientv3.WithPrefix())
 	cancel()

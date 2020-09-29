@@ -146,8 +146,8 @@ github.com/tmc/grpc-websocket-proxy v0.0.0-20200427203606-3cfed13b9966/go.mod h1
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 h1:eY9dn8+vbi4tKz5Qo6v2eYzo7kUS51QINcR5jNpbZS8=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
-github.com/zyxpaomian/etcdv3client v0.0.0-20200929022049-8a9aa453e497 h1:ebpx9rPokqyLwmuTjuoSDPtEEHMZklJZ0Nge8kltHUI=
-github.com/zyxpaomian/etcdv3client v0.0.0-20200929022049-8a9aa453e497/go.mod h1:5+LzexjkXzPGMLmzfjkMGbB/YcnGU0/eKnesqKb0UrU=
+github.com/zyxpaomian/etcdv3client v0.0.0-20200929024130-0eeb3feb9314 h1:mXObg7KEqN9WB7wpEsFBG1+6O6Q+KhvGpGtbcbUB5CE=
+github.com/zyxpaomian/etcdv3client v0.0.0-20200929024130-0eeb3feb9314/go.mod h1:5+LzexjkXzPGMLmzfjkMGbB/YcnGU0/eKnesqKb0UrU=
 go.etcd.io/bbolt v1.3.5 h1:XAzx9gjCb0Rxj7EoqcClPD1d5ZBxZJk0jbuoPHenBt0=
 go.etcd.io/bbolt v1.3.5/go.mod h1:G5EMThwa9y8QZGBClrRx5EY+Yw9kAhnjy3bSjsnlVTQ=
 go.etcd.io/etcd v3.3.25+incompatible h1:V1RzkZJj9LqsJRy+TUBgpWSbZXITLB819lstuTFoZOY=
