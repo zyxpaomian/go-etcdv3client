@@ -102,6 +102,7 @@ func (e *EtcdClient) GetPrefix(key string) (map[string]string, error) {
 	if len(resp.Kvs) == 0 {
 		return nil, fmt.Errorf("get key: %s failed, err: have no value, check your key string", key)
 	}
+	fmt.Println(resp.Kvs)
 	for _, kv := range resp.Kvs {
 		resultMap[string(kv.Key)] = string(kv.Value)
 	}
