@@ -82,7 +82,7 @@ func (e *EtcdClient) Get(key string) (string, error) {
 		return "", fmt.Errorf("get key: %s failed, err: %v", key, err)
 	}
 	if len(resp.Kvs) > 1 {
-		return fmt.Errorf("get key: %s failed, err: have multi values, maybe can use prefix", key)
+		return "", fmt.Errorf("get key: %s failed, err: have multi values, maybe can use prefix", key)
 	}
 	if len(resp.Kvs) == 0 {
 		return "", fmt.Errorf("get key: %s failed, err: have no value, check your key string", key)
