@@ -1,4 +1,4 @@
-package etcdV3Client
+package etcdclientv3
 
 import (
 	"context"
