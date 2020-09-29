@@ -82,7 +82,7 @@ func (e *EtcdClient) Get(key string) (string, error) {
 		return "", fmt.Errorf("get key: %s failed, err: %v", key, err)
 	}
 	if len(resp.Kvs) > 1 {
-		return fmt.Errorf("get key: % failed, err: have multi values, maybe can use prefix", key)
+		return fmt.Errorf("get key: %s failed, err: have multi values, maybe can use prefix", key)
 	}
 	if len(resp.Kvs) == 0 {
 		return "", fmt.Errorf("get key: %s failed, err: have no value, check your key string", key)
@@ -109,7 +109,7 @@ func (e *EtcdClient) GetPrefix(key string) (map[string]string, error) {
 }
 
 func (e *EtcdClient) Put(key, value string) error {
-	ctx, cancel := context.WithTimeout(context.BackgroundQ, time.Duration(e.ReqTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(e.ReqTimeout)*time.Second)
 	_, err := e.Client.Put(ctx, key, value)
 	cancel()
 	if err != nil {
@@ -151,7 +151,7 @@ func (e *EtcdClient) Lock(key string) error {
 			return fmt.Errorf("set lease time failed, err: %v", err)
 		}
 		// get leaseld
-		leaseld := leaseResp.ID
+		leaseId := leaseResp.ID
 		// define txn
 		txn := kv.Txn(context.TODO())
 		txn.If(clientv3.Compare(clientv3.CreateRevision(key), "=", 0)).
@@ -189,6 +189,6 @@ func (e *EtcdClient) Unlock(key string) error {
 		fmt.Errorf("conv from string to int failed, err: %v")
 	}
 	lease := clientv3.NewLease(e.Client)
-	lease.Revoke(context.TODO(), clientv3.LeaselD(leaseld))
+	lease.Revoke(context.TODO(), clientv3.LeaseID(leaseld))
 	return nil
 }
