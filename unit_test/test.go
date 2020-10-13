@@ -14,6 +14,9 @@ func main() {
         panic(err)
     }
 
+    mce.Etcdclient.WatchPrefix("putTest")
+    
+    /*
     // put test
     err = mce.Etcdclient.Put("putTest/mykey", "ok")
     if err != nil {
@@ -43,7 +46,7 @@ func main() {
         panic(err)
     }
     fmt.Println(myprefix) 
-
+    
     // del test
     err = mce.Etcdclient.Del("putTest/mykey")
     if err != nil {
@@ -57,4 +60,5 @@ func main() {
         fmt.Println("etcdClient DelPrefix Error")
         panic(err)
     }
+    */
 }
