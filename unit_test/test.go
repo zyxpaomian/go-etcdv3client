@@ -13,8 +13,10 @@ func main() {
         fmt.Println("etcdClient Init Error")
         panic(err)
     }
-
-    mce.Etcdclient.WatchPrefix("putTest")
+    fmt.Println(111)
+    mce.Etcdclient.WatchPrefix("server/")
+     fmt.Println(222)
+    fmt.Println(wchchan)
     
     /*
     // put test

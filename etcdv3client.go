@@ -138,13 +138,13 @@ func (e *EtcdClient) DelPrefix(key string) error {
 	return nil
 }
 
-func (e *EtcdClient) WatchPrefix(key string, wchchan chan string) {
-	wch := e.Client.Watch(context.Background(), key, clientv3.WithPrefix())
+func (e *EtcdClient) WatchPrefix(key string) {
+	wch := e.Client.Watch(context.Background(), key)
 	for item := range wch {
 		fmt.Println(item)
-		wchchan <- string((item.Events[0]).Kv.Value)
+		//wchchan <- string((item.Events[0]).Kv.Value)
 	}
-	close(wchchan)
+	//close(wchchan)
 }
 
 func (e *EtcdClient) Lock(key string) error {
