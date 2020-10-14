@@ -16,12 +16,13 @@ var Etcdclient *EtcdClient
 type EtcdClient struct {
 	Endpoints   []string
 	Client      *clientv3.Client
-	LeaseTime   int64
+	LeaseID 	clientv3.LeaseID
+	Lease   	clientv3.Lease
 	DialTimeout int
 	ReqTimeout  int
 }
 
-func ClientInit(dialTimeout int, reqTimeout int, leaseTime int64, endpoints []string) error {
+func ClientInit(dialTimeout int, reqTimeout int, endpoints []string) error {
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
 		DialTimeout: time.Duration(dialTimeout) * time.Second,
@@ -32,14 +33,13 @@ func ClientInit(dialTimeout int, reqTimeout int, leaseTime int64, endpoints []st
 	Etcdclient = &EtcdClient{
 		Endpoints:   endpoints,
 		Client:      cli,
-		LeaseTime:   leaseTime,
 		DialTimeout: dialTimeout,
 		ReqTimeout:  reqTimeout,
 	}
 	return nil
 }
 
-func ClientInitWithCA(etcdCert, etcdCertKey, etcdCa string, dialTimeout int, reqTimeout int, leaseTime int64, endpoints []string) error {
+func ClientInitWithCA(etcdCert, etcdCertKey, etcdCa string, dialTimeout int, reqTimeout int, endpoints []string) error {
 	cert, err := tls.LoadX509KeyPair(etcdCert, etcdCertKey)
 	if err != nil {
 		return fmt.Errorf("set Tls Cert Falied, Errorlnfo: %s", err.Error())
@@ -67,7 +67,6 @@ func ClientInitWithCA(etcdCert, etcdCertKey, etcdCa string, dialTimeout int, req
 	Etcdclient = &EtcdClient{
 		Endpoints:   endpoints,
 		Client:      cli,
-		LeaseTime:   leaseTime,
 		DialTimeout: dialTimeout,
 		ReqTimeout:  reqTimeout,
 	}
@@ -138,24 +137,28 @@ func (e *EtcdClient) DelPrefix(key string) error {
 	return nil
 }
 
-func (e *EtcdClient) WatchPrefix(key string) {
-	wch := e.Client.Watch(context.Background(), key)
+func (e *EtcdClient) WatchPrefix(key string, keyChan, valueChan, typeChan chan string) {
+	wch := e.Client.Watch(context.Background(), key, clientv3.WithPrefix())
 	for item := range wch {
-		fmt.Println(item)
-		//wchchan <- string((item.Events[0]).Kv.Value)
+		for _, ev := range item.Events{
+			keyChan <- string(ev.Kv.Key)
+			valueChan <- string(ev.Kv.Value)
+			etype := fmt.Sprintf("%s",ev.Type)
+			typeChan <- etype
+        	//fmt.Printf("%s %q:%q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
+        }
 	}
-	//close(wchchan)
 }
 
 func (e *EtcdClient) Lock(key string) error {
 	getLock := false
 	kv := clientv3.NewKV(e.Client)
-	retryTimes := int(e.LeaseTime * 2)
+	retryTimes := int(300 * 2)
 	for i := 0; i < retryTimes; i++ {
 		// create lease
 		lease := clientv3.NewLease(e.Client)
 		// set lease time
-		leaseResp, err := lease.Grant(context.TODO(), e.LeaseTime)
+		leaseResp, err := lease.Grant(context.TODO(), 300)
 		if err != nil {
 			return fmt.Errorf("set lease time failed, err: %v", err)
 		}
@@ -199,5 +202,42 @@ func (e *EtcdClient) Unlock(key string) error {
 	}
 	lease := clientv3.NewLease(e.Client)
 	lease.Revoke(context.TODO(), clientv3.LeaseID(leaseld))
+	return nil
+}
+
+func (e *EtcdClient) SetLease(leaseTime int64) error {
+	lease := clientv3.NewLease(e.Client)
+
+	leaseResp, err := lease.Grant(context.TODO(), leaseTime)
+	if err != nil {
+		return fmt.Errorf("set etcd lease failed")
+	}
+	e.LeaseID = leaseResp.ID
+	e.Lease = lease
+	return nil
+}
+
+func (e *EtcdClient) DataRegister(registerKey, registerData string, respError chan error ) error{
+	var keepResp *clientv3.LeaseKeepAliveResponse
+	var keepRespChan <-chan *clientv3.LeaseKeepAliveResponse
+	
+	_, err := e.Client.Put(context.TODO(), registerKey, registerData, clientv3.WithLease(e.LeaseID))
+	if err != nil {
+		fmt.Errorf("save register data failed")
+	}
+	if keepRespChan, err = e.Lease.KeepAlive(context.TODO(), e.LeaseID); err != nil {
+		fmt.Errorf("set lease failed")
+	}
+	go func() {
+		for {
+			select {
+			case keepResp = <-keepRespChan:
+
+				if keepResp == nil {
+					respError <- fmt.Errorf("auto release failed")
+				} 
+			}
+		}
+	}()
 	return nil
 }

@@ -3,20 +3,57 @@ package main
 import(
     mce "github.com/zyxpaomian/etcdv3client"
     "fmt"    
+    "time"
 )
 
 
 func main() {
     var endPoints  = []string{"192.168.159.133:2379"}
-    err := mce.ClientInit(10, 10, 300, endPoints)
+    err := mce.ClientInit(10, 10, endPoints)
     if err != nil {
         fmt.Println("etcdClient Init Error")
         panic(err)
     }
-    fmt.Println(111)
-    mce.Etcdclient.WatchPrefix("server/")
-     fmt.Println(222)
-    fmt.Println(wchchan)
+
+
+    err = mce.Etcdclient.SetLease(15)
+    if err != nil {
+        fmt.Println("set lease error")
+    }
+
+    errChan := make(chan error)
+    err = mce.Etcdclient.DataRegister("/test", "aaa", errChan)
+    if err != nil {
+        fmt.Println("set error chan error")
+    }
+
+    go func() {
+        for {
+            time.Sleep(time.Duration(5)*time.Second)
+            errdata := <- errChan
+            fmt.Println(errdata.Error())
+        }
+    }()
+    select {}
+
+    /*keyChan := make(chan string)
+    valueChan := make(chan string)
+    typeChan := make(chan string)
+    go mce.Etcdclient.WatchPrefix("/server/", keyChan, valueChan, typeChan)
+
+    go func() {
+        for {
+            key := <- keyChan
+            value := <- valueChan
+            etype := <- typeChan
+            fmt.Println(key)
+            fmt.Println(etype)
+            fmt.Println(value)
+        }
+    }()
+
+    select {}*/
+
     
     /*
     // put test
@@ -62,5 +99,7 @@ func main() {
         fmt.Println("etcdClient DelPrefix Error")
         panic(err)
     }
+
+    select {}
     */
 }
