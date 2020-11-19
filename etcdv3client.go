@@ -206,9 +206,10 @@ func (e *EtcdClient) Unlock(key string) error {
 }
 
 func (e *EtcdClient) SetLease(leaseTime int64) error {
+    ctx, cancel := context.WithTimeout(context.TODO(), time.Second * 5)
+    defer cancel()
 	lease := clientv3.NewLease(e.Client)
-
-	leaseResp, err := lease.Grant(context.TODO(), leaseTime)
+	leaseResp, err := lease.Grant(ctx, leaseTime)
 	if err != nil {
 		return fmt.Errorf("set etcd lease failed")
 	}
@@ -218,24 +219,26 @@ func (e *EtcdClient) SetLease(leaseTime int64) error {
 }
 
 func (e *EtcdClient) DataRegister(registerKey, registerData string, respError chan error ) error{
-	var keepResp *clientv3.LeaseKeepAliveResponse
+	// var keepResp *clientv3.LeaseKeepAliveResponse
 	var keepRespChan <-chan *clientv3.LeaseKeepAliveResponse
 	
 	_, err := e.Client.Put(context.TODO(), registerKey, registerData, clientv3.WithLease(e.LeaseID))
 	if err != nil {
-		fmt.Errorf("save register data failed")
+		return fmt.Errorf("save register data failed")
 	}
 	if keepRespChan, err = e.Lease.KeepAlive(context.TODO(), e.LeaseID); err != nil {
-		fmt.Errorf("set lease failed")
+		return fmt.Errorf("set lease failed")
 	}
+
 	go func() {
 		for {
 			select {
-			case keepResp = <-keepRespChan:
-
-				if keepResp == nil {
+			//case keepResp = <-keepRespChan:
+			case <- keepRespChan:
+				if <- keepRespChan == nil {
+					time.Sleep(time.Second * 1)
 					respError <- fmt.Errorf("auto release failed")
-				} 
+				}
 			}
 		}
 	}()
